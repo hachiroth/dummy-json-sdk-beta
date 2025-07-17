@@ -10,18 +10,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout current commit
+      - name: Checkout with previous commit
         uses: actions/checkout@v4
-
-      - name: Get previous commit
-        id: prev
-        run: echo "commit=$(git rev-parse HEAD^)" >> "$GITHUB_OUTPUT"
+        with:
+          fetch-depth: 2
 
       - name: Get previous version
         id: prev_version
         run: |
-          git show ${{ steps.prev.outputs.commit }}:package.json > prev-package.json
-          echo "version=$(jq -r .version prev-package.json)" >> "$GITHUB_OUTPUT"
+          if git rev-parse HEAD^ >/dev/null 2>&1; then
+            git show HEAD^:package.json > prev-package.json
+            echo "version=$(jq -r .version prev-package.json)" >> "$GITHUB_OUTPUT"
+          else
+            echo "No previous version found."
+            echo "version=" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Get current version
         id: curr_version
@@ -31,14 +34,16 @@ jobs:
       - name: Compare versions
         id: compare
         run: |
-          echo "prev=${{ steps.prev_version.outputs.version }}"
-          echo "curr=${{ steps.curr_version.outputs.version }}"
-          if [ "${{ steps.prev_version.outputs.version }}" = "${{ steps.curr_version.outputs.version }}" ]; then
-            echo "No version change, exiting."
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "Version changed, will publish."
+          prev="${{ steps.prev_version.outputs.version }}"
+          curr="${{ steps.curr_version.outputs.version }}"
+          echo "Previous version: $prev"
+          echo "Current version: $curr"
+          if [ -z "$prev" ] || [ "$prev" != "$curr" ]; then
+            echo "Version changed or no previous version"
             echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No version change"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Setup Node.js
