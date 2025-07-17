@@ -21,8 +21,17 @@
     "dev": "tsx src/index.ts",
     "prepublishOnly": "pnpm run build"
   },
+  "homepage": "https://dummyjson.com/",
+  "repository": {
+    "type": "github",
+    "url": "https://github.com/hachiroth/dummy-json-sdk-beta"
+  },
   "author": {
-    "name": "hachiroth"
+    "name": "hachiroth",
+    "url": "https://github.com/hachiroth/dummy-json-sdk-beta"
+  },
+  "bugs": {
+    "url": "https://github.com/hachiroth/dummy-json-sdk-beta/issues"
   },
   "license": "MIT",
   "devDependencies": {
